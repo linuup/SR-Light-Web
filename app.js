@@ -234,7 +234,7 @@ class BleManager {
     const hour = String(now.getHours()).padStart(2, '0');
     const minute = String(now.getMinutes()).padStart(2, '0');
     const second = String(now.getSeconds()).padStart(2, '0');
-    
+
     const command = `FL+TIME:${year}-${month}-${day} ${hour}:${minute}:${second}`;
     this.log(`手动/自动校时：使用设备当前时间 [${year}-${month}-${day} ${hour}:${minute}:${second}]`, 'info');
     await this.send(command);
@@ -257,7 +257,7 @@ class BleManager {
 }
 
 // --- GLOBAL CONTROLLERS (DEFINED AT SCRIPT EXECUTION TIME) ---
-window.toggleConsoleModal = function(show = true) {
+window.toggleConsoleModal = function (show = true) {
   const modal = document.getElementById('console-modal');
   const modalBleConsole = document.getElementById('modal-ble-console');
   if (!modal) return;
@@ -271,7 +271,7 @@ window.toggleConsoleModal = function(show = true) {
   }
 };
 
-window.syncTimeNow = async function() {
+window.syncTimeNow = async function () {
   const btn = document.getElementById('sync-time-btn');
   if (btn) btn.disabled = true;
   try {
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Map: 0% warm → 2700K, 100% cool → 6500K
         if (p.cct !== undefined) {
           const cctPct = p.cct;
-          const cctK   = Math.round(2700 + (cctPct / 100) * (6500 - 2700));
+          const cctK = Math.round(2700 + (cctPct / 100) * (6500 - 2700));
           if (document.activeElement !== cctSlider) {
             cctSlider.value = cctK;
             valCctSlider.textContent = `${cctK}K`;
@@ -508,21 +508,25 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // ── Sunrise parameters ─────────────────────────────────────
+        // ── Sunrise Preset Card Highlight ──────────────────────────
         if (p.sun_dur !== undefined) {
-          const durEl = document.getElementById('sunrise-duration');
-          if (durEl && document.activeElement !== durEl) durEl.value = p.sun_dur;
-        }
-        if (p.sun_s !== undefined) {
-          const startEl = document.getElementById('sunrise-start-cct');
-          // MCU sends 0–100 %; UI uses K — convert back
-          const startK = Math.round(2700 + (p.sun_s / 100) * (6500 - 2700));
-          if (startEl && document.activeElement !== startEl) startEl.value = startK;
-        }
-        if (p.sun_e !== undefined) {
-          const endEl = document.getElementById('sunrise-end-cct');
-          const endK  = Math.round(2700 + (p.sun_e / 100) * (6500 - 2700));
-          if (endEl && document.activeElement !== endEl) endEl.value = endK;
+          let presetKey = 'natural';
+          if (p.sun_dur === 20) presetKey = 'energizing';
+          else if (p.sun_dur === 45) presetKey = 'gentle';
+          else presetKey = 'natural';
+
+          const presetCards = document.querySelectorAll('.sunrise-preset-card');
+          presetCards.forEach(c => {
+            if (c.dataset.preset === presetKey) {
+              c.classList.add('active');
+              c.style.borderColor = '#00e5ff';
+              c.style.background = 'rgba(0,229,255,0.08)';
+            } else {
+              c.classList.remove('active');
+              c.style.borderColor = 'rgba(255,255,255,0.1)';
+              c.style.background = 'rgba(255,255,255,0.03)';
+            }
+          });
         }
       }
     } catch (e) {
@@ -649,39 +653,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       await bleManager.send(command);
-      logToConsole(`保存唤醒闹钟成功: ${padHour}:${padMinute}`, 'info');
     } catch (e) {
       // Failed write
     }
   });
 
-  // Apply Sunrise Config
-  saveSunriseBtn.addEventListener('click', async () => {
-    const duration = Number(durationInput.value);
-    const startCct = Number(startCctInput.value);
-    const endCct = Number(endCctInput.value);
+  // --- SUNRISE PRESET HANDLERS ---
+  const presetCards = document.querySelectorAll('.sunrise-preset-card');
+  let selectedPreset = 'natural';
 
-    if (isNaN(duration) || duration <= 0) {
-      logToConsole('持续时间必须是大于0的数字', 'warn');
-      return;
-    }
+  const PRESET_CONFIGS = {
+    natural:    { name: '自然晨曦', dur: 30, startK: 2700, endK: 4500 },
+    energizing: { name: '强力唤醒', dur: 20, startK: 3000, endK: 6500 },
+    gentle:     { name: '柔光无感', dur: 45, startK: 2200, endK: 3500 }
+  };
 
-    // Save to Cache
-    localStorage.setItem('SR-Light_duration', duration);
-    localStorage.setItem('SR-Light_start_cct', startCct);
-    localStorage.setItem('SR-Light_end_cct', endCct);
-
-    const startCctPercent = Math.round(((6500 - startCct) / 3800) * 100);
-    const endCctPercent = Math.round(((6500 - endCct) / 3800) * 100);
-    const command = `FL+SUN:${duration},${startCctPercent},${endCctPercent}`;
-
-    try {
-      await bleManager.send(command);
-      logToConsole('日出渐变参数配置已应用并发送。', 'info');
-    } catch (e) {
-      // Error logged
-    }
+  presetCards.forEach(card => {
+    card.addEventListener('click', () => {
+      presetCards.forEach(c => {
+        c.classList.remove('active');
+        c.style.borderColor = 'rgba(255,255,255,0.1)';
+        c.style.background = 'rgba(255,255,255,0.03)';
+      });
+      card.classList.add('active');
+      card.style.borderColor = '#00e5ff';
+      card.style.background = 'rgba(0,229,255,0.08)';
+      selectedPreset = card.dataset.preset;
+    });
   });
+
+  const applyPresetBtn = document.getElementById('apply-preset-btn');
+  if (applyPresetBtn) {
+    applyPresetBtn.addEventListener('click', async () => {
+      const cfg = PRESET_CONFIGS[selectedPreset] || PRESET_CONFIGS.natural;
+      const startCctPercent = Math.max(0, Math.min(100, Math.round(((6500 - cfg.startK) / 3800) * 100)));
+      const endCctPercent   = Math.max(0, Math.min(100, Math.round(((6500 - cfg.endK) / 3800) * 100)));
+      const command = `FL+SUN:${cfg.dur},${startCctPercent},${endCctPercent}`;
+
+      try {
+        await bleManager.send(command);
+        logToConsole(`设置成功：已应用【${cfg.name}】模式 (${cfg.dur}分钟)`, 'info');
+      } catch (e) {
+        // Error logged
+      }
+    });
+  }
 
   // Manual Brightness Slider
   brightnessSlider.addEventListener('input', (e) => {
@@ -753,7 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- CONSOLE MODAL INTERACTION ---
-  window.toggleConsoleModal = function(show = true) {
+  window.toggleConsoleModal = function (show = true) {
     const modal = document.getElementById('console-modal');
     const modalBleConsole = document.getElementById('modal-ble-console');
     if (!modal) return;
