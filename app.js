@@ -52,7 +52,13 @@ class BleManager {
 
     try {
       this.device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
+        filters: [
+          { namePrefix: 'SR' },
+          { namePrefix: 'JDY' },
+          { name: 'SR_Light' },
+          { name: 'SR-Light' },
+          { services: [serviceUuid] }
+        ],
         optionalServices: [serviceUuid, '0000ffe0-0000-1000-8000-00805f9b34fb']
       });
 
