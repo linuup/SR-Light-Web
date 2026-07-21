@@ -238,6 +238,13 @@ class BleManager {
     const command = `FL+TIME:${year}-${month}-${day} ${hour}:${minute}:${second}`;
     this.log(`手动/自动校时：使用设备当前时间 [${year}-${month}-${day} ${hour}:${minute}:${second}]`, 'info');
     await this.send(command);
+
+    // Query status immediately after time sync so MCU returns full JSON with RTC time
+    try {
+      await this.send('FL+QUERY?');
+    } catch (e) {
+      // Ignored
+    }
   }
 
   updateUuids(serviceUuid, charUuid) {
@@ -424,6 +431,20 @@ document.addEventListener('DOMContentLoaded', () => {
   bleManager.onReceiveCallback = (rawText) => {
     try {
       const cleanText = rawText.trim();
+      // Handle non-JSON ACK response for time sync
+      if (cleanText.includes('ACK: TIME SET TO')) {
+        const timeMatch = cleanText.match(/\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/);
+        if (timeMatch) {
+          const rtcTimeEl = document.getElementById('val-rtc-time');
+          const rtcStatusEl = document.getElementById('val-rtc-status');
+          if (rtcTimeEl) rtcTimeEl.textContent = timeMatch[0];
+          if (rtcStatusEl) {
+            rtcStatusEl.textContent = '已同步';
+            rtcStatusEl.style.color = '#00e5ff';
+          }
+        }
+      }
+
       // Expecting JSON format from device.
       if (cleanText.startsWith('{') && cleanText.endsWith('}')) {
         const p = JSON.parse(cleanText);
