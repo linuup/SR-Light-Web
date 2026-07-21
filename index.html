@@ -301,17 +301,35 @@
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-            闹钟设置 (Wake Time)
+            唤醒闹钟 (24小时制)
           </h2>
         </div>
 
-        <div class="form-row">
-          <div class="input-container" style="grid-column: span 2;">
-            <label for="alarm-time">唤醒时间</label>
-            <div style="display:flex; gap:0.75rem;">
-              <input type="time" id="alarm-time" class="input-field" style="flex-grow:1;" value="07:00">
-              <button id="save-alarm-btn" class="btn btn-cyan">保存设置</button>
+        <div class="control-group">
+          <div class="time-picker-24h" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1.5px solid rgba(255,255,255,0.1); border-radius:14px; padding:0.6rem 1rem;">
+            <!-- Left: Wheels -->
+            <div style="display:flex; align-items:center; gap:0.25rem;">
+              <!-- Hour Wheel -->
+              <div class="picker-column" id="picker-col-hour" style="display:flex; flex-direction:column; align-items:center; cursor:ns-resize; user-select:none; touch-action:none; padding:0 0.4rem;">
+                <button class="picker-step-btn" id="btn-hour-up" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▲</button>
+                <span class="picker-value" id="picker-val-hour" style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:#00e5ff; width:2.8rem; text-align:center;">07</span>
+                <button class="picker-step-btn" id="btn-hour-down" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▼</button>
+              </div>
+
+              <span style="font-size:1.8rem; font-weight:700; color:var(--text-dimmed); margin-bottom:0.2rem;">:</span>
+
+              <!-- Minute Wheel -->
+              <div class="picker-column" id="picker-col-minute" style="display:flex; flex-direction:column; align-items:center; cursor:ns-resize; user-select:none; touch-action:none; padding:0 0.4rem;">
+                <button class="picker-step-btn" id="btn-minute-up" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▲</button>
+                <span class="picker-value" id="picker-val-minute" style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:#00e5ff; width:2.8rem; text-align:center;">00</span>
+                <button class="picker-step-btn" id="btn-minute-down" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▼</button>
+              </div>
+
+              <span style="font-size:0.75rem; color:var(--text-muted); margin-left:0.3rem;">(上下滑动调节)</span>
             </div>
+
+            <!-- Right: Save Button -->
+            <button id="save-alarm-btn" class="btn btn-cyan" style="font-weight:700; padding:0.65rem 1.1rem; border-radius:10px;">保存闹钟</button>
           </div>
         </div>
       </section>
@@ -326,7 +344,7 @@
               <polyline points="16 3 16 8 21 8" />
               <line x1="12" y1="12" x2="22" y2="12" />
             </svg>
-            手动控制 (测试模式)
+            手动灯光控制
           </h2>
         </div>
 
@@ -334,7 +352,7 @@
           <!-- Brightness Slider -->
           <div class="slider-container">
             <div class="slider-header">
-              <span class="slider-label">亮度调节 (Brightness)</span>
+              <span class="slider-label">灯光亮度</span>
               <span class="slider-value" id="val-brightness-slider">80%</span>
             </div>
             <input type="range" id="brightness-slider" min="1" max="100" value="80">
@@ -343,10 +361,14 @@
           <!-- Color Temperature Slider -->
           <div class="slider-container">
             <div class="slider-header">
-              <span class="slider-label">色温调节 (CCT)</span>
-              <span class="slider-value" id="val-cct-slider">4200K</span>
+              <span class="slider-label">灯光色温 (暖黄 ↔ 冷白)</span>
+              <span class="slider-value" id="val-cct-slider">自然白光 🟨</span>
             </div>
             <input type="range" id="cct-slider" min="2700" max="6500" step="50" value="4200">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">
+              <span>🟡 暖黄光</span>
+              <span>⚪ 冷白光</span>
+            </div>
           </div>
         </div>
       </section>

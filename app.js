@@ -474,10 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const cctK = Math.round(2700 + (cctPct / 100) * (6500 - 2700));
           if (document.activeElement !== cctSlider) {
             cctSlider.value = cctK;
-            valCctSlider.textContent = `${cctK}K`;
+            valCctSlider.textContent = getCctLabel(cctK);
           }
           const bright = p.brightness !== undefined ? p.brightness : brightnessSlider.value;
-          valOutputCct.textContent = `${bright}% @ ${cctK}K`;
+          valOutputCct.textContent = `${bright}% 亮度 · ${getCctLabel(cctK)}`;
         }
 
         // ── Alarm time & enable ────────────────────────────────────
@@ -490,10 +490,10 @@ document.addEventListener('DOMContentLoaded', () => {
           alarmStr = `${hh}:${mm}`;
         }
         if (alarmStr) {
-          const alarmInput = document.getElementById('alarm-time');
-          if (alarmInput && document.activeElement !== alarmInput) {
-            alarmInput.value = alarmStr;
-          }
+          const [h, m] = alarmStr.split(':').map(Number);
+          if (!isNaN(h)) alarmHour = h;
+          if (!isNaN(m)) alarmMinute = m;
+          updatePickerDisplay();
           valAlarm.textContent = alarmStr;
         }
 
@@ -633,29 +633,109 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Save Alarm
+  // --- CCT NATURAL LABEL HELPER ---
+  function getCctLabel(cctK) {
+    if (cctK <= 3300) return '暖黄光 🟧';
+    if (cctK <= 4800) return '自然白光 🟨';
+    return '冷白光 🟦';
+  }
+
+  // --- 24-HOUR TOUCH TIME PICKER ---
+  let alarmHour = 7;
+  let alarmMinute = 0;
+
+  const valHourEl = document.getElementById('picker-val-hour');
+  const valMinuteEl = document.getElementById('picker-val-minute');
+
+  function updatePickerDisplay() {
+    if (valHourEl) valHourEl.textContent = String(alarmHour).padStart(2, '0');
+    if (valMinuteEl) valMinuteEl.textContent = String(alarmMinute).padStart(2, '0');
+  }
+
+  function adjustHour(delta) {
+    alarmHour = (alarmHour + delta + 24) % 24;
+    updatePickerDisplay();
+  }
+
+  function adjustMinute(delta) {
+    alarmMinute = (alarmMinute + delta + 60) % 60;
+    updatePickerDisplay();
+  }
+
+  // Stepper Buttons
+  const btnHourUp = document.getElementById('btn-hour-up');
+  const btnHourDown = document.getElementById('btn-hour-down');
+  const btnMinuteUp = document.getElementById('btn-minute-up');
+  const btnMinuteDown = document.getElementById('btn-minute-down');
+
+  if (btnHourUp) btnHourUp.addEventListener('click', () => adjustHour(1));
+  if (btnHourDown) btnHourDown.addEventListener('click', () => adjustHour(-1));
+  if (btnMinuteUp) btnMinuteUp.addEventListener('click', () => adjustMinute(1));
+  if (btnMinuteDown) btnMinuteDown.addEventListener('click', () => adjustMinute(-1));
+
+  // Touch Drag & Mouse Drag Controller for Wheels
+  function bindPickerDrag(columnEl, onAdjust) {
+    if (!columnEl) return;
+    let startY = 0;
+
+    const handleStart = (e) => {
+      startY = e.touches ? e.touches[0].clientY : e.clientY;
+    };
+
+    const handleMove = (e) => {
+      if (!startY) return;
+      const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+      const diffY = startY - currentY;
+
+      if (Math.abs(diffY) >= 12) {
+        onAdjust(diffY > 0 ? 1 : -1);
+        startY = currentY;
+      }
+    };
+
+    const handleEnd = () => { startY = 0; };
+
+    columnEl.addEventListener('touchstart', handleStart, { passive: true });
+    columnEl.addEventListener('touchmove', handleMove, { passive: true });
+    columnEl.addEventListener('touchend', handleEnd);
+
+    columnEl.addEventListener('mousedown', handleStart);
+    columnEl.addEventListener('mousemove', (e) => { if (e.buttons === 1) handleMove(e); });
+    columnEl.addEventListener('mouseup', handleEnd);
+
+    columnEl.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      onAdjust(e.deltaY < 0 ? 1 : -1);
+    }, { passive: false });
+  }
+
+  bindPickerDrag(document.getElementById('picker-col-hour'), adjustHour);
+  bindPickerDrag(document.getElementById('picker-col-minute'), adjustMinute);
+
+  // Restore saved alarm
+  const cachedAlarm = localStorage.getItem('SR-Light_alarm');
+  if (cachedAlarm) {
+    const [ch, cm] = cachedAlarm.split(':').map(Number);
+    if (!isNaN(ch)) alarmHour = ch;
+    if (!isNaN(cm)) alarmMinute = cm;
+    updatePickerDisplay();
+    valAlarm.textContent = cachedAlarm;
+  }
+
+  // Save Alarm Button
   saveAlarmBtn.addEventListener('click', async () => {
-    const alarmTime = alarmTimeInput.value;
-    if (!alarmTime) {
-      logToConsole('闹钟时间不能为空', 'warn');
-      return;
-    }
+    const padHour = String(alarmHour).padStart(2, '0');
+    const padMinute = String(alarmMinute).padStart(2, '0');
+    const alarmTimeStr = `${padHour}:${padMinute}`;
 
-    const [hour, minute] = alarmTime.split(':').map(Number);
+    localStorage.setItem('SR-Light_alarm', alarmTimeStr);
+    valAlarm.textContent = alarmTimeStr;
 
-    // Save to Cache
-    localStorage.setItem('SR-Light_alarm', alarmTime);
-    valAlarm.textContent = alarmTime;
-
-    const padHour = String(hour).padStart(2, '0');
-    const padMinute = String(minute).padStart(2, '0');
     const command = `FL+ALARM:${padHour}:${padMinute},1`;
-
     try {
       await bleManager.send(command);
-    } catch (e) {
-      // Failed write
-    }
+      logToConsole(`保存 24 小时闹钟成功: ${alarmTimeStr}`, 'info');
+    } catch (e) {}
   });
 
   // --- SUNRISE PRESET HANDLERS ---
@@ -703,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
   brightnessSlider.addEventListener('input', (e) => {
     const value = Number(e.target.value);
     valBrightnessSlider.textContent = `${value}%`;
-    valOutputCct.textContent = `${value}% @ ${cctSlider.value}K`;
+    valOutputCct.textContent = `${value}% 亮度 · ${getCctLabel(cctSlider.value)}`;
   });
 
   brightnessSlider.addEventListener('change', async (e) => {
@@ -717,8 +797,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Manual CCT Slider
   cctSlider.addEventListener('input', (e) => {
     const value = Number(e.target.value);
-    valCctSlider.textContent = `${value}K`;
-    valOutputCct.textContent = `${brightnessSlider.value}% @ ${value}K`;
+    valCctSlider.textContent = getCctLabel(value);
+    valOutputCct.textContent = `${brightnessSlider.value}% 亮度 · ${getCctLabel(value)}`;
   });
 
   cctSlider.addEventListener('change', async (e) => {
