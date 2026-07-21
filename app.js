@@ -635,8 +635,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- CCT NATURAL LABEL HELPER ---
   function getCctLabel(cctK) {
-    if (cctK <= 3300) return '暖黄光 🟧';
-    if (cctK <= 4800) return '自然白光 🟨';
+    if (cctK <= 3300) return '暖黄光';
+    if (cctK <= 4800) return '自然白光';
     return '冷白光 🟦';
   }
 
@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await bleManager.send(command);
       logToConsole(`保存 24 小时闹钟成功: ${alarmTimeStr}`, 'info');
-    } catch (e) {}
+    } catch (e) { }
   });
 
   // --- SUNRISE PRESET HANDLERS ---
@@ -743,9 +743,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedPreset = 'natural';
 
   const PRESET_CONFIGS = {
-    natural:    { name: '自然晨曦', dur: 30, startK: 2700, endK: 4500 },
+    natural: { name: '自然晨曦', dur: 30, startK: 2700, endK: 4500 },
     energizing: { name: '强力唤醒', dur: 20, startK: 3000, endK: 6500 },
-    gentle:     { name: '柔光无感', dur: 45, startK: 2200, endK: 3500 }
+    gentle: { name: '柔光无感', dur: 45, startK: 2200, endK: 3500 }
   };
 
   presetCards.forEach(card => {
@@ -767,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyPresetBtn.addEventListener('click', async () => {
       const cfg = PRESET_CONFIGS[selectedPreset] || PRESET_CONFIGS.natural;
       const startCctPercent = Math.max(0, Math.min(100, Math.round(((6500 - cfg.startK) / 3800) * 100)));
-      const endCctPercent   = Math.max(0, Math.min(100, Math.round(((6500 - cfg.endK) / 3800) * 100)));
+      const endCctPercent = Math.max(0, Math.min(100, Math.round(((6500 - cfg.endK) / 3800) * 100)));
       const command = `FL+SUN:${cfg.dur},${startCctPercent},${endCctPercent}`;
 
       try {

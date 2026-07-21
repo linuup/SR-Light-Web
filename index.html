@@ -44,7 +44,7 @@
       align-items: center;
       justify-content: center;
       gap: 2rem;
-      background: var(--bg-primary, #0d0d1e);
+      background: #f4f6fc;
       transition: opacity 0.6s ease, visibility 0.6s ease;
     }
 
@@ -65,13 +65,13 @@
     .splash-logo svg {
       width: 80px;
       height: 80px;
-      filter: drop-shadow(0 0 24px rgba(124, 77, 255, 0.6));
+      filter: drop-shadow(0 4px 16px rgba(108, 92, 231, 0.4));
     }
 
     .splash-title {
       font-size: 2rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #7c4dff, #00e5ff);
+      background: linear-gradient(135deg, #1e2030, #6c5ce7);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -80,7 +80,7 @@
 
     .splash-subtitle {
       font-size: 0.95rem;
-      color: rgba(255, 255, 255, 0.45);
+      color: #64748b;
       margin-top: -0.75rem;
     }
 
@@ -92,18 +92,18 @@
       font-weight: 700;
       padding: 1rem 2.5rem;
       border-radius: 999px;
-      background: linear-gradient(135deg, #7c4dff, #00e5ff);
+      background: linear-gradient(135deg, #6c5ce7, #00b8d4);
       color: #fff;
       border: none;
       cursor: pointer;
-      box-shadow: 0 0 32px rgba(124, 77, 255, 0.45), 0 4px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 20px rgba(108, 92, 231, 0.35);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       letter-spacing: 0.03em;
     }
 
     #splash-connect-btn:hover {
       transform: scale(1.04);
-      box-shadow: 0 0 48px rgba(124, 77, 255, 0.65), 0 4px 28px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 28px rgba(108, 92, 231, 0.5);
     }
 
     #splash-connect-btn:active {
@@ -223,15 +223,6 @@
   <!-- MAIN APP (revealed after connect)                           -->
   <!-- ════════════════════════════════════════════════════════════ -->
   <div id="main-app" class="app-container">
-    <!-- PWA Install Banner -->
-    <div id="pwa-install-banner" class="glass-panel">
-      <div class="pwa-text">
-        <strong>安装 SR-Light App</strong>
-        <div class="help-text">将其添加到主屏幕以获得全屏 App 级体验。</div>
-      </div>
-      <button id="pwa-install-btn" class="btn btn-cyan btn-sm">安装</button>
-    </div>
-
     <!-- Header Panel -->
     <header class="glass-panel">
       <div class="brand-section">
@@ -306,30 +297,40 @@
         </div>
 
         <div class="control-group">
-          <div class="time-picker-24h" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1.5px solid rgba(255,255,255,0.1); border-radius:14px; padding:0.6rem 1rem;">
+          <div class="time-picker-24h"
+            style="display:flex; align-items:center; justify-content:space-between; background:rgba(245, 247, 252, 0.9); border:1.5px solid rgba(215, 222, 237, 0.8); border-radius:14px; padding:0.6rem 1rem;">
             <!-- Left: Wheels -->
             <div style="display:flex; align-items:center; gap:0.25rem;">
               <!-- Hour Wheel -->
-              <div class="picker-column" id="picker-col-hour" style="display:flex; flex-direction:column; align-items:center; cursor:ns-resize; user-select:none; touch-action:none; padding:0 0.4rem;">
-                <button class="picker-step-btn" id="btn-hour-up" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▲</button>
-                <span class="picker-value" id="picker-val-hour" style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:#00e5ff; width:2.8rem; text-align:center;">07</span>
-                <button class="picker-step-btn" id="btn-hour-down" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▼</button>
+              <div class="picker-column" id="picker-col-hour"
+                style="display:flex; flex-direction:column; align-items:center; cursor:ns-resize; user-select:none; touch-action:none; padding:0 0.4rem;">
+                <button class="picker-step-btn" id="btn-hour-up"
+                  style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▲</button>
+                <span class="picker-value" id="picker-val-hour"
+                  style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:#6c5ce7; width:2.8rem; text-align:center;">07</span>
+                <button class="picker-step-btn" id="btn-hour-down"
+                  style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▼</button>
               </div>
 
               <span style="font-size:1.8rem; font-weight:700; color:var(--text-dimmed); margin-bottom:0.2rem;">:</span>
 
               <!-- Minute Wheel -->
-              <div class="picker-column" id="picker-col-minute" style="display:flex; flex-direction:column; align-items:center; cursor:ns-resize; user-select:none; touch-action:none; padding:0 0.4rem;">
-                <button class="picker-step-btn" id="btn-minute-up" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▲</button>
-                <span class="picker-value" id="picker-val-minute" style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:#00e5ff; width:2.8rem; text-align:center;">00</span>
-                <button class="picker-step-btn" id="btn-minute-down" style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▼</button>
+              <div class="picker-column" id="picker-col-minute"
+                style="display:flex; flex-direction:column; align-items:center; cursor:ns-resize; user-select:none; touch-action:none; padding:0 0.4rem;">
+                <button class="picker-step-btn" id="btn-minute-up"
+                  style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▲</button>
+                <span class="picker-value" id="picker-val-minute"
+                  style="font-family:var(--font-mono); font-size:2rem; font-weight:700; color:#6c5ce7; width:2.8rem; text-align:center;">00</span>
+                <button class="picker-step-btn" id="btn-minute-down"
+                  style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; padding:0.1rem;">▼</button>
               </div>
 
               <span style="font-size:0.75rem; color:var(--text-muted); margin-left:0.3rem;">(上下滑动调节)</span>
             </div>
 
             <!-- Right: Save Button -->
-            <button id="save-alarm-btn" class="btn btn-cyan" style="font-weight:700; padding:0.65rem 1.1rem; border-radius:10px;">保存闹钟</button>
+            <button id="save-alarm-btn" class="btn btn-cyan"
+              style="font-weight:700; padding:0.65rem 1.1rem; border-radius:10px;">保存闹钟</button>
           </div>
         </div>
       </section>
@@ -352,7 +353,7 @@
           <!-- Brightness Slider -->
           <div class="slider-container">
             <div class="slider-header">
-              <span class="slider-label">灯光亮度</span>
+              <span class="slider-label">亮度</span>
               <span class="slider-value" id="val-brightness-slider">80%</span>
             </div>
             <input type="range" id="brightness-slider" min="1" max="100" value="80">
@@ -361,11 +362,11 @@
           <!-- Color Temperature Slider -->
           <div class="slider-container">
             <div class="slider-header">
-              <span class="slider-label">灯光色温 (暖黄 ↔ 冷白)</span>
-              <span class="slider-value" id="val-cct-slider">自然白光 🟨</span>
+              <span class="slider-label">色温</span>
             </div>
             <input type="range" id="cct-slider" min="2700" max="6500" step="50" value="4200">
-            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">
+            <div
+              style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">
               <span>🟡 暖黄光</span>
               <span>⚪ 冷白光</span>
             </div>
@@ -402,7 +403,8 @@
             <span class="card-title">硬件 RTC 时间</span>
             <span id="val-rtc-status" style="font-size:0.75rem; color:var(--text-muted);">等待同步...</span>
           </div>
-          <span class="card-value" id="val-rtc-time" style="font-family:var(--font-mono); font-size:1.1rem; color:#00e5ff;">YYYY-MM-DD --:--:--</span>
+          <span class="card-value" id="val-rtc-time"
+            style="font-family:var(--font-mono); font-size:1.1rem; color:#00e5ff;">YYYY-MM-DD --:--:--</span>
         </div>
 
         <!-- Sunrise Progress Card -->
@@ -437,36 +439,39 @@
           </h2>
         </div>
 
-        <div class="preset-cards-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-top:0.5rem;">
+        <div class="preset-cards-grid"
+          style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-top:0.5rem;">
           <!-- Card 1: Natural -->
           <div class="sunrise-preset-card active" data-preset="natural" id="preset-card-natural"
-            style="background: rgba(0,229,255,0.08); border: 1.5px solid #00e5ff; border-radius: 12px; padding: 0.85rem; cursor: pointer; transition: all 0.2s ease;">
+            style="background: rgba(0, 184, 212, 0.08); border: 1.5px solid #00b8d4; border-radius: 12px; padding: 0.85rem; cursor: pointer; transition: all 0.2s ease;">
             <div style="font-size: 1.6rem; margin-bottom: 0.25rem;">🌅</div>
-            <div style="font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.2rem;">自然晨曦</div>
-            <div style="font-size: 0.75rem; color: #00e5ff; font-weight: 600; margin-bottom: 0.35rem;">30分钟 · 暖光到自然光</div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: #1e2030; margin-bottom: 0.2rem;">自然晨曦</div>
+            <div style="font-size: 0.75rem; color: #00b8d4; font-weight: 600; margin-bottom: 0.35rem;">30分钟 · 暖光到自然光
+            </div>
             <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.3;">模拟真实日出，温和舒适唤醒</div>
           </div>
 
           <!-- Card 2: Energizing -->
           <div class="sunrise-preset-card" data-preset="energizing" id="preset-card-energizing"
-            style="background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.85rem; cursor: pointer; transition: all 0.2s ease;">
+            style="background: #ffffff; border: 1.5px solid rgba(215, 222, 237, 0.8); border-radius: 12px; padding: 0.85rem; cursor: pointer; transition: all 0.2s ease;">
             <div style="font-size: 1.6rem; margin-bottom: 0.25rem;">⚡</div>
-            <div style="font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.2rem;">强力唤醒</div>
-            <div style="font-size: 0.75rem; color: #7c4dff; font-weight: 600; margin-bottom: 0.35rem;">20分钟 · 亮白日光</div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: #1e2030; margin-bottom: 0.2rem;">强力唤醒</div>
+            <div style="font-size: 0.75rem; color: #6c5ce7; font-weight: 600; margin-bottom: 0.35rem;">20分钟 · 亮白日光</div>
             <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.3;">高亮清爽日光，快速赶走困意</div>
           </div>
 
           <!-- Card 3: Gentle -->
           <div class="sunrise-preset-card" data-preset="gentle" id="preset-card-gentle"
-            style="background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.85rem; cursor: pointer; transition: all 0.2s ease;">
+            style="background: #ffffff; border: 1.5px solid rgba(215, 222, 237, 0.8); border-radius: 12px; padding: 0.85rem; cursor: pointer; transition: all 0.2s ease;">
             <div style="font-size: 1.6rem; margin-bottom: 0.25rem;">🌙</div>
-            <div style="font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.2rem;">柔光无感</div>
-            <div style="font-size: 0.75rem; color: #ffab40; font-weight: 600; margin-bottom: 0.35rem;">45分钟 · 琥珀暗光</div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: #1e2030; margin-bottom: 0.2rem;">柔光无感</div>
+            <div style="font-size: 0.75rem; color: #e67e22; font-weight: 600; margin-bottom: 0.35rem;">45分钟 · 琥珀暗光</div>
             <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.3;">极度轻柔，适合浅睡易醒人群</div>
           </div>
         </div>
 
-        <button id="apply-preset-btn" class="btn btn-cyan" style="width:100%; margin-top:0.85rem; font-weight:700; padding:0.7rem;">应用当前唤醒模式</button>
+        <button id="apply-preset-btn" class="btn btn-cyan"
+          style="width:100%; margin-top:0.85rem; font-weight:700; padding:0.7rem;">应用当前唤醒模式</button>
       </section>
 
       <!-- Protocol Monitor Panel -->
