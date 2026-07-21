@@ -423,8 +423,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const p = JSON.parse(cleanText);
 
         // ── Progress & sunrise running state ───────────────────────
-        if (p.progress !== undefined) {
-          const prog = Math.min(100, Math.max(0, p.progress));
+        const progVal = p.sun_prog !== undefined ? p.sun_prog : p.progress;
+        if (progVal !== undefined) {
+          const prog = Math.min(100, Math.max(0, progVal));
           valProgressBar.style.width = `${prog}%`;
           valProgressPercent.textContent = `${prog}%`;
         }
