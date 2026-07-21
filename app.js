@@ -453,14 +453,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // ── Alarm time & enable ────────────────────────────────────
-        if (p.alarm_h !== undefined && p.alarm_m !== undefined) {
+        let alarmStr = null;
+        if (p.alarm !== undefined) {
+          alarmStr = p.alarm;
+        } else if (p.alarm_h !== undefined && p.alarm_m !== undefined) {
           const hh = String(p.alarm_h).padStart(2, '0');
           const mm = String(p.alarm_m).padStart(2, '0');
+          alarmStr = `${hh}:${mm}`;
+        }
+        if (alarmStr) {
           const alarmInput = document.getElementById('alarm-time');
           if (alarmInput && document.activeElement !== alarmInput) {
-            alarmInput.value = `${hh}:${mm}`;
+            alarmInput.value = alarmStr;
           }
-          valAlarm.textContent = `${hh}:${mm}`;
+          valAlarm.textContent = alarmStr;
+        }
+
+        // ── RTC Time from MCU ──────────────────────────────────────
+        if (p.time) {
+          logToConsole(`MCU RTC 当前时间: ${p.time}`, 'info');
         }
 
         // ── Sunrise parameters ─────────────────────────────────────
@@ -592,11 +603,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const padHour = String(hour).padStart(2, '0');
     const padMinute = String(minute).padStart(2, '0');
-    const command = `FL+ALARM:${padHour},${padMinute},1`;
+    const command = `FL+ALARM:${padHour}:${padMinute},1`;
 
     try {
       await bleManager.send(command);
-      logToConsole(`保存唤醒闹钟成功: ${alarmTime}`, 'info');
+      logToConsole(`保存唤醒闹钟成功: ${padHour}:${padMinute}`, 'info');
     } catch (e) {
       // Failed write
     }
