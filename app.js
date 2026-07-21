@@ -70,36 +70,36 @@ class BleManager {
       this.server = await this.device.gatt.connect();
       this.log('GATT 服务端连接成功，正在获取服务...', 'info');
 
-      // Fallback service discovery
+      // Multi-stage Service Discovery for iOS Bluefy CoreBluetooth, Android, and Desktop Chrome
       try {
-        this.service = await this.server.getPrimaryService(serviceUuid);
-      } catch (svcErr) {
+        this.service = await this.server.getPrimaryService(0xffe0);
+      } catch (e1) {
         try {
-          this.service = await this.server.getPrimaryService(0xffe0);
+          this.service = await this.server.getPrimaryService(serviceUuid);
         } catch (e2) {
           const services = await this.server.getPrimaryServices();
           if (services && services.length > 0) {
             this.service = services[0];
           } else {
-            throw svcErr;
+            throw e1;
           }
         }
       }
 
       this.log('主服务获取成功，正在获取 Characteristic...', 'info');
 
-      // Fallback characteristic discovery
+      // Multi-stage Characteristic Discovery for iOS Bluefy CoreBluetooth, Android, and Desktop Chrome
       try {
-        this.characteristic = await this.service.getCharacteristic(characteristicUuid);
-      } catch (charErr) {
+        this.characteristic = await this.service.getCharacteristic(0xffe1);
+      } catch (e1) {
         try {
-          this.characteristic = await this.service.getCharacteristic(0xffe1);
+          this.characteristic = await this.service.getCharacteristic(characteristicUuid);
         } catch (e2) {
           const chars = await this.service.getCharacteristics();
           if (chars && chars.length > 0) {
             this.characteristic = chars[0];
           } else {
-            throw charErr;
+            throw e1;
           }
         }
       }
@@ -195,34 +195,34 @@ class BleManager {
 
       this.server = await this.device.gatt.connect();
 
-      // Fallback service discovery
+      // Multi-stage Service Discovery for iOS Bluefy CoreBluetooth, Android, and Desktop Chrome
       try {
-        this.service = await this.server.getPrimaryService(serviceUuid);
-      } catch (svcErr) {
+        this.service = await this.server.getPrimaryService(0xffe0);
+      } catch (e1) {
         try {
-          this.service = await this.server.getPrimaryService(0xffe0);
+          this.service = await this.server.getPrimaryService(serviceUuid);
         } catch (e2) {
           const services = await this.server.getPrimaryServices();
           if (services && services.length > 0) {
             this.service = services[0];
           } else {
-            throw svcErr;
+            throw e1;
           }
         }
       }
 
-      // Fallback characteristic discovery
+      // Multi-stage Characteristic Discovery for iOS Bluefy CoreBluetooth, Android, and Desktop Chrome
       try {
-        this.characteristic = await this.service.getCharacteristic(characteristicUuid);
-      } catch (charErr) {
+        this.characteristic = await this.service.getCharacteristic(0xffe1);
+      } catch (e1) {
         try {
-          this.characteristic = await this.service.getCharacteristic(0xffe1);
+          this.characteristic = await this.service.getCharacteristic(characteristicUuid);
         } catch (e2) {
           const chars = await this.service.getCharacteristics();
           if (chars && chars.length > 0) {
             this.characteristic = chars[0];
           } else {
-            throw charErr;
+            throw e1;
           }
         }
       }
