@@ -344,25 +344,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- LOCAL STORAGE CACHE LOAD ---
   function loadCachedSettings() {
     const alarm = localStorage.getItem('SR-Light_alarm') || '07:00';
-    alarmTimeInput.value = alarm;
-    valAlarm.textContent = alarm;
+    if (alarmTimeInput) alarmTimeInput.value = alarm;
+    if (valAlarm) valAlarm.textContent = alarm;
 
-    const duration = localStorage.getItem('SR-Light_duration') || '30';
-    durationInput.value = duration;
+    if (durationInput) durationInput.value = localStorage.getItem('SR-Light_duration') || '30';
+    if (startCctInput) startCctInput.value = localStorage.getItem('SR-Light_start_cct') || '2700';
+    if (endCctInput) endCctInput.value = localStorage.getItem('SR-Light_end_cct') || '6500';
 
-    const startCct = localStorage.getItem('SR-Light_start_cct') || '2700';
-    startCctInput.value = startCct;
-
-    const endCct = localStorage.getItem('SR-Light_end_cct') || '6500';
-    endCctInput.value = endCct;
-
-    uuidServiceInput.value = bleManager.serviceUuid;
-    uuidCharInput.value = bleManager.characteristicUuid;
+    if (uuidServiceInput) uuidServiceInput.value = bleManager.serviceUuid;
+    if (uuidCharInput) uuidCharInput.value = bleManager.characteristicUuid;
 
     // Initial display of sliders
-    valBrightnessSlider.textContent = `${brightnessSlider.value}%`;
-    valCctSlider.textContent = `${cctSlider.value}K`;
-    valOutputCct.textContent = `${brightnessSlider.value}% @ ${cctSlider.value}K`;
+    if (valBrightnessSlider && brightnessSlider) valBrightnessSlider.textContent = `${brightnessSlider.value}%`;
+    if (valCctSlider && cctSlider) valCctSlider.textContent = getCctLabel(cctSlider.value);
+    if (valOutputCct && brightnessSlider && cctSlider) valOutputCct.textContent = `${brightnessSlider.value}% 亮度 · ${getCctLabel(cctSlider.value)}`;
   }
 
   // --- DIGITAL CLOCK ---
@@ -453,17 +448,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const progVal = p.sun_prog !== undefined ? p.sun_prog : p.progress;
         if (progVal !== undefined) {
           const prog = Math.min(100, Math.max(0, progVal));
-          valProgressBar.style.width = `${prog}%`;
-          valProgressPercent.textContent = `${prog}%`;
+          if (valProgressBar) valProgressBar.style.width = `${prog}%`;
+          if (valProgressPercent) valProgressPercent.textContent = `${prog}%`;
         }
 
         // ── Brightness ─────────────────────────────────────────────
         if (p.brightness !== undefined) {
           const b = p.brightness;
-          if (document.activeElement !== brightnessSlider) {
+          if (brightnessSlider && document.activeElement !== brightnessSlider) {
             brightnessSlider.value = b;
-            valBrightnessSlider.textContent = `${b}%`;
           }
+          if (valBrightnessSlider) valBrightnessSlider.textContent = `${b}%`;
         }
 
         // ── CCT (0–100 % scale from MCU) ───────────────────────────
@@ -472,12 +467,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (p.cct !== undefined) {
           const cctPct = p.cct;
           const cctK = Math.round(2700 + (cctPct / 100) * (6500 - 2700));
-          if (document.activeElement !== cctSlider) {
+          if (cctSlider && document.activeElement !== cctSlider) {
             cctSlider.value = cctK;
-            valCctSlider.textContent = getCctLabel(cctK);
           }
-          const bright = p.brightness !== undefined ? p.brightness : brightnessSlider.value;
-          valOutputCct.textContent = `${bright}% 亮度 · ${getCctLabel(cctK)}`;
+          if (valCctSlider) valCctSlider.textContent = getCctLabel(cctK);
+          const bright = p.brightness !== undefined ? p.brightness : (brightnessSlider ? brightnessSlider.value : 80);
+          if (valOutputCct) valOutputCct.textContent = `${bright}% 亮度 · ${getCctLabel(cctK)}`;
         }
 
         // ── Alarm time & enable ────────────────────────────────────
