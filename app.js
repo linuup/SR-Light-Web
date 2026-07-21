@@ -140,58 +140,6 @@ class BleManager {
     }
   }
 
-  async autoConnectDevice(permittedDevice) {
-    if (!permittedDevice) return false;
-    let serviceUuid = this.serviceUuid.toLowerCase().trim().replace(/^0x/, '');
-    if (serviceUuid.length === 4) {
-      serviceUuid = `0000${serviceUuid}-0000-1000-8000-00805f9b34fb`;
-    }
-    let characteristicUuid = this.characteristicUuid.toLowerCase().trim().replace(/^0x/, '');
-    if (characteristicUuid.length === 4) {
-      characteristicUuid = `0000${characteristicUuid}-0000-1000-8000-00805f9b34fb`;
-    }
-
-    try {
-      this.device = permittedDevice;
-      this.device.addEventListener('gattserverdisconnected', () => {
-        this.handleDisconnection();
-      });
-
-      this.server = await this.device.gatt.connect();
-
-      this.service = await this.server.getPrimaryService(serviceUuid);
-      this.characteristic = await this.service.getCharacteristic(characteristicUuid);
-
-      this.isConnected = true;
-      if (this.onStatusChangeCallback) {
-        this.onStatusChangeCallback(true);
-      }
-
-      this.characteristic.addEventListener('characteristicvaluechanged', (event) => {
-        const value = event.target.value;
-        const decoder = new TextDecoder('utf-8');
-        const rawText = decoder.decode(value);
-
-        this.rxBuffer += rawText;
-        let pos;
-        while ((pos = this.rxBuffer.search(/[\r\n]/)) !== -1) {
-          const line = this.rxBuffer.substring(0, pos).trim();
-          this.rxBuffer = this.rxBuffer.substring(pos + 1);
-          if (line.length > 0) {
-            this.log(`← 接收到设备数据: ${line}`, 'rx');
-            if (this.onReceiveCallback) this.onReceiveCallback(line);
-          }
-        }
-      });
-      await this.characteristic.startNotifications();
-      this.log(`自动重连成功 (${permittedDevice.name || 'SR-Light'})！校时已就绪。`, 'info');
-      await this.syncSystemTime();
-      return true;
-    } catch (err) {
-      this.log(`自动重连未成功: ${err.message || err}`, 'warn');
-      return false;
-    }
-  }
 
   async send(payload) {
     const isString = typeof payload === 'string';
@@ -720,52 +668,9 @@ document.addEventListener('DOMContentLoaded', () => {
     logToConsole('蓝牙 UUID 配置已保存。重新连接后将应用新配置。', 'info');
   });
 
-  // --- AUTO CONNECT TOGGLE HANDLER ---
-  const autoConnectToggle = document.getElementById('auto-connect-toggle');
-  const isAutoConnectEnabled = localStorage.getItem('SR-Light_auto_connect') === 'true';
-
-  async function tryAutoConnect() {
-    if (!navigator.bluetooth || typeof navigator.bluetooth.getDevices !== 'function') return;
-    if (bleManager.isConnected) return;
-
-    try {
-      const devices = await navigator.bluetooth.getDevices();
-      if (devices && devices.length > 0) {
-        logToConsole(`检测到开启自动连接，正在自动重连已允许的设备 (${devices[0].name || 'SR-Light'})...`, 'info');
-        for (const dev of devices) {
-          const ok = await bleManager.autoConnectDevice(dev);
-          if (ok) break;
-        }
-      } else {
-        logToConsole('自动连接提示: 首次使用需点击一次"搜索并连接设备"授权浏览器，后续即可静默自动连接。', 'info');
-      }
-    } catch (e) {
-      console.log('Auto connect getDevices failed:', e);
-    }
-  }
-
-  if (autoConnectToggle) {
-    autoConnectToggle.checked = isAutoConnectEnabled;
-    autoConnectToggle.addEventListener('change', () => {
-      const state = autoConnectToggle.checked;
-      localStorage.setItem('SR-Light_auto_connect', state ? 'true' : 'false');
-      if (state) {
-        logToConsole('已开启"自动连接已配对设备"。', 'info');
-        tryAutoConnect();
-      } else {
-        logToConsole('已关闭"自动连接"。', 'info');
-      }
-    });
-  }
-
   // --- INITIALIZATION WORKFLOW ---
   startClock();
   loadCachedSettings();
-  logToConsole('SR-Light Web Controller v1.6.0 (Build 20260722) 运行中', 'info');
-
-  if (isAutoConnectEnabled) {
-    setTimeout(tryAutoConnect, 600);
-  }
 });
 
 // --- PWA INSTALL BANNER SERVICE ---
