@@ -113,6 +113,13 @@ class BleManager {
       // Trigger automatic time synchronization on connect
       await this.syncSystemTime();
 
+      // Query current device status (brightness, CCT, alarm, sunrise params)
+      try {
+        await this.send('FL+QUERY?');
+      } catch (qErr) {
+        console.log('Status query after connect error:', qErr);
+      }
+
       // Start periodic re-sync every 30 minutes to compensate LSI clock drift
       this._syncTimer = setInterval(async () => {
         if (this.isConnected) {
@@ -411,29 +418,66 @@ document.addEventListener('DOMContentLoaded', () => {
   bleManager.onReceiveCallback = (rawText) => {
     try {
       const cleanText = rawText.trim();
-      // Expecting JSON format from device. e.g., {"progress": 25, "brightness": 40, "cct": 3000}
+      // Expecting JSON format from device.
       if (cleanText.startsWith('{') && cleanText.endsWith('}')) {
-        const payload = JSON.parse(cleanText);
+        const p = JSON.parse(cleanText);
 
-        if (payload.progress !== undefined) {
-          const prog = Math.min(100, Math.max(0, payload.progress));
+        // ── Progress & sunrise running state ───────────────────────
+        if (p.progress !== undefined) {
+          const prog = Math.min(100, Math.max(0, p.progress));
           valProgressBar.style.width = `${prog}%`;
           valProgressPercent.textContent = `${prog}%`;
         }
 
-        const currentBright = payload.brightness !== undefined ? payload.brightness : brightnessSlider.value;
-        const currentCct = payload.cct !== undefined ? payload.cct : cctSlider.value;
-
-        valOutputCct.textContent = `${currentBright}% @ ${currentCct}K`;
-
-        // Optionally update manual sliders if not being touched
-        if (!document.activeElement || document.activeElement !== brightnessSlider) {
-          brightnessSlider.value = currentBright;
-          valBrightnessSlider.textContent = `${currentBright}%`;
+        // ── Brightness ─────────────────────────────────────────────
+        if (p.brightness !== undefined) {
+          const b = p.brightness;
+          if (document.activeElement !== brightnessSlider) {
+            brightnessSlider.value = b;
+            valBrightnessSlider.textContent = `${b}%`;
+          }
         }
-        if (!document.activeElement || document.activeElement !== cctSlider) {
-          cctSlider.value = currentCct;
-          valCctSlider.textContent = `${currentCct}K`;
+
+        // ── CCT (0–100 % scale from MCU) ───────────────────────────
+        // MCU sends cct as 0–100 %; sliders use 2700–6500 K range.
+        // Map: 0% warm → 2700K, 100% cool → 6500K
+        if (p.cct !== undefined) {
+          const cctPct = p.cct;
+          const cctK   = Math.round(2700 + (cctPct / 100) * (6500 - 2700));
+          if (document.activeElement !== cctSlider) {
+            cctSlider.value = cctK;
+            valCctSlider.textContent = `${cctK}K`;
+          }
+          const bright = p.brightness !== undefined ? p.brightness : brightnessSlider.value;
+          valOutputCct.textContent = `${bright}% @ ${cctK}K`;
+        }
+
+        // ── Alarm time & enable ────────────────────────────────────
+        if (p.alarm_h !== undefined && p.alarm_m !== undefined) {
+          const hh = String(p.alarm_h).padStart(2, '0');
+          const mm = String(p.alarm_m).padStart(2, '0');
+          const alarmInput = document.getElementById('alarm-time');
+          if (alarmInput && document.activeElement !== alarmInput) {
+            alarmInput.value = `${hh}:${mm}`;
+          }
+          valAlarm.textContent = `${hh}:${mm}`;
+        }
+
+        // ── Sunrise parameters ─────────────────────────────────────
+        if (p.sun_dur !== undefined) {
+          const durEl = document.getElementById('sunrise-duration');
+          if (durEl && document.activeElement !== durEl) durEl.value = p.sun_dur;
+        }
+        if (p.sun_s !== undefined) {
+          const startEl = document.getElementById('sunrise-start-cct');
+          // MCU sends 0–100 %; UI uses K — convert back
+          const startK = Math.round(2700 + (p.sun_s / 100) * (6500 - 2700));
+          if (startEl && document.activeElement !== startEl) startEl.value = startK;
+        }
+        if (p.sun_e !== undefined) {
+          const endEl = document.getElementById('sunrise-end-cct');
+          const endK  = Math.round(2700 + (p.sun_e / 100) * (6500 - 2700));
+          if (endEl && document.activeElement !== endEl) endEl.value = endK;
         }
       }
     } catch (e) {

@@ -19,11 +19,11 @@
 
   <!-- Inline Controller for Time Sync -->
   <script>
-    window.syncTimeNow = function() {
+    window.syncTimeNow = function () {
       var btn = document.getElementById('sync-time-btn');
       if (btn) btn.disabled = true;
       if (window.bleManagerInstance) {
-        window.bleManagerInstance.syncSystemTime().finally(function() {
+        window.bleManagerInstance.syncSystemTime().finally(function () {
           if (btn) btn.disabled = false;
         });
       } else {
@@ -47,11 +47,13 @@
       background: var(--bg-primary, #0d0d1e);
       transition: opacity 0.6s ease, visibility 0.6s ease;
     }
+
     #connect-splash.hidden {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
     }
+
     .splash-logo {
       display: flex;
       flex-direction: column;
@@ -59,11 +61,13 @@
       gap: 1rem;
       animation: splash-float 3s ease-in-out infinite;
     }
+
     .splash-logo svg {
       width: 80px;
       height: 80px;
       filter: drop-shadow(0 0 24px rgba(124, 77, 255, 0.6));
     }
+
     .splash-title {
       font-size: 2rem;
       font-weight: 800;
@@ -73,11 +77,13 @@
       background-clip: text;
       letter-spacing: 0.05em;
     }
+
     .splash-subtitle {
       font-size: 0.95rem;
-      color: rgba(255,255,255,0.45);
+      color: rgba(255, 255, 255, 0.45);
       margin-top: -0.75rem;
     }
+
     #splash-connect-btn {
       display: flex;
       align-items: center;
@@ -90,37 +96,43 @@
       color: #fff;
       border: none;
       cursor: pointer;
-      box-shadow: 0 0 32px rgba(124,77,255,0.45), 0 4px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 0 32px rgba(124, 77, 255, 0.45), 0 4px 20px rgba(0, 0, 0, 0.4);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       letter-spacing: 0.03em;
     }
+
     #splash-connect-btn:hover {
       transform: scale(1.04);
-      box-shadow: 0 0 48px rgba(124,77,255,0.65), 0 4px 28px rgba(0,0,0,0.5);
+      box-shadow: 0 0 48px rgba(124, 77, 255, 0.65), 0 4px 28px rgba(0, 0, 0, 0.5);
     }
+
     #splash-connect-btn:active {
       transform: scale(0.97);
     }
+
     #splash-connect-btn:disabled {
       opacity: 0.55;
       cursor: not-allowed;
       transform: none;
     }
+
     .splash-hint {
       font-size: 0.8rem;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255, 255, 255, 0.3);
     }
+
     #splash-error {
       font-size: 0.85rem;
       color: #ff5370;
-      background: rgba(255,83,112,0.1);
-      border: 1px solid rgba(255,83,112,0.25);
+      background: rgba(255, 83, 112, 0.1);
+      border: 1px solid rgba(255, 83, 112, 0.25);
       border-radius: 8px;
       padding: 0.5rem 1rem;
       display: none;
       max-width: 300px;
       text-align: center;
     }
+
     .splash-pulse {
       width: 10px;
       height: 10px;
@@ -129,13 +141,31 @@
       display: inline-block;
       animation: pulse-dot 1.2s ease-in-out infinite;
     }
+
     @keyframes splash-float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
     }
+
     @keyframes pulse-dot {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.6); opacity: 0.4; }
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.6);
+        opacity: 0.4;
+      }
     }
 
     /* ── Main App (hidden until connected) ──────────────────────── */
@@ -145,6 +175,7 @@
       transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s;
       pointer-events: none;
     }
+
     #main-app.visible {
       opacity: 1;
       transform: translateY(0);
@@ -173,7 +204,7 @@
         <circle cx="12" cy="9" r="1.5" fill="#00e5ff" />
       </svg>
       <span class="splash-title">SR-Light</span>
-      <span class="splash-subtitle">智能台灯控制器</span>
+      <span class="splash-subtitle">FM的☀️灯</span>
     </div>
 
     <button id="splash-connect-btn">
@@ -214,7 +245,8 @@
           <circle cx="12" cy="9" r="1.5" fill="#00e5ff" />
         </svg>
         <span class="brand-name">SR-Light</span>
-        <span class="version-badge" style="font-size:0.75rem; padding:0.15rem 0.45rem; background:rgba(0,229,255,0.15); color:#00e5ff; border:1px solid rgba(0,229,255,0.3); border-radius:6px; font-weight:600; margin-left:0.4rem;">v1.7.0</span>
+        <span class="version-badge"
+          style="font-size:0.75rem; padding:0.15rem 0.45rem; background:rgba(0,229,255,0.15); color:#00e5ff; border:1px solid rgba(0,229,255,0.3); border-radius:6px; font-weight:600; margin-left:0.4rem;">v1.7.0</span>
       </div>
       <div class="status-badge disconnected" id="ble-status-badge">
         <span class="status-dot"></span>
@@ -327,7 +359,9 @@
         <div class="glass-panel grid-card" style="display:flex; flex-direction:column; justify-content:space-between;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="card-title">系统时间</span>
-            <button id="sync-time-btn" onclick="syncTimeNow()" class="btn btn-cyan btn-sm" style="font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:6px; height:auto;" title="使用当前手机/设备时间同步到台灯">
+            <button id="sync-time-btn" onclick="syncTimeNow()" class="btn btn-cyan btn-sm"
+              style="font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:6px; height:auto;"
+              title="使用当前手机/设备时间同步到台灯">
               同步手机时间
             </button>
           </div>
