@@ -17,6 +17,7 @@ class BleManager {
 
     this.isConnected = false;
     this.rxBuffer = '';
+    this._syncTimer = null;  // Periodic re-sync timer handle
 
     // Callbacks
     this.onStatusChangeCallback = null;
@@ -109,8 +110,16 @@ class BleManager {
         this.log(`无法开启通知订阅: ${notifyErr.message || notifyErr}`, 'warn');
       }
 
-      // Trigger automatic time synchronization
+      // Trigger automatic time synchronization on connect
       await this.syncSystemTime();
+
+      // Start periodic re-sync every 30 minutes to compensate LSI clock drift
+      this._syncTimer = setInterval(async () => {
+        if (this.isConnected) {
+          this.log('定时校时 (30 min)：正在自动同步时间...', 'info');
+          await this.syncSystemTime();
+        }
+      }, 30 * 60 * 1000);
 
     } catch (error) {
       this.log(`连接失败: ${error.message || error}`, 'error');
@@ -125,6 +134,11 @@ class BleManager {
     this.service = null;
     this.characteristic = null;
     this.device = null;
+    // Clear periodic re-sync timer
+    if (this._syncTimer) {
+      clearInterval(this._syncTimer);
+      this._syncTimer = null;
+    }
     this.log('设备已断开连接。', 'info');
     if (this.onStatusChangeCallback) {
       this.onStatusChangeCallback(false);
