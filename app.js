@@ -478,7 +478,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ── RTC Time from MCU ──────────────────────────────────────
         if (p.time) {
-          logToConsole(`MCU RTC 当前时间: ${p.time}`, 'info');
+          const rtcTimeEl = document.getElementById('val-rtc-time');
+          const rtcStatusEl = document.getElementById('val-rtc-status');
+          if (rtcTimeEl) rtcTimeEl.textContent = p.time;
+          if (rtcStatusEl) {
+            rtcStatusEl.textContent = '实时运行中';
+            rtcStatusEl.style.color = '#00e5ff';
+          }
         }
 
         // ── Sunrise parameters ─────────────────────────────────────
@@ -535,6 +541,14 @@ document.addEventListener('DOMContentLoaded', () => {
       valProgressPercent.textContent = '0%';
       valProgressBar.style.width = '0%';
       valOutputCct.textContent = '--% @ --K';
+
+      const rtcTimeEl = document.getElementById('val-rtc-time');
+      const rtcStatusEl = document.getElementById('val-rtc-status');
+      if (rtcTimeEl) rtcTimeEl.textContent = 'YYYY-MM-DD --:--:--';
+      if (rtcStatusEl) {
+        rtcStatusEl.textContent = '已断开';
+        rtcStatusEl.style.color = 'var(--text-muted)';
+      }
     }
   };
 
