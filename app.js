@@ -81,41 +81,43 @@ class BleManager {
       this.server = await this.device.gatt.connect();
       this.log('GATT 服务端连接成功，正在获取服务...', 'info');
 
-      // Multi-stage Service Discovery for iOS Bluefy CoreBluetooth, Android, and Desktop Chrome
+      // Direct Service Discovery (bypasses iOS Bluefy Code 2 NotFoundError)
       try {
-        this.service = await this.server.getPrimaryService(0xffe0);
-      } catch (e1) {
+        const services = await this.server.getPrimaryServices();
+        if (services && services.length > 0) {
+          this.service = services.find(s => s.uuid.includes('ffe0')) || services[0];
+        } else {
+          this.service = await this.server.getPrimaryService(0xffe0);
+        }
+      } catch (svcErr) {
         try {
+          this.service = await this.server.getPrimaryService(0xffe0);
+        } catch (e2) {
           this.service = await this.server.getPrimaryService(serviceUuid);
-        } catch (e2) {
-          const services = await this.server.getPrimaryServices();
-          if (services && services.length > 0) {
-            this.service = services[0];
-          } else {
-            throw e1;
-          }
         }
       }
 
-      this.log('主服务获取成功，正在获取 Characteristic...', 'info');
+      this.log(`主服务获取成功 (${this.service.uuid})，正在获取 Characteristic...`, 'info');
 
-      // Multi-stage Characteristic Discovery for iOS Bluefy CoreBluetooth, Android, and Desktop Chrome
+      // Direct Characteristic Discovery (bypasses iOS Bluefy Code 2 NotFoundError)
       try {
-        this.characteristic = await this.service.getCharacteristic(0xffe1);
-      } catch (e1) {
+        const chars = await this.service.getCharacteristics();
+        if (chars && chars.length > 0) {
+          this.characteristic = chars.find(c => c.uuid.includes('ffe1')) || 
+                                chars.find(c => (c.properties.write || c.properties.writeWithoutResponse || c.properties.notify)) || 
+                                chars[0];
+        } else {
+          this.characteristic = await this.service.getCharacteristic(0xffe1);
+        }
+      } catch (charErr) {
         try {
-          this.characteristic = await this.service.getCharacteristic(characteristicUuid);
+          this.characteristic = await this.service.getCharacteristic(0xffe1);
         } catch (e2) {
-          const chars = await this.service.getCharacteristics();
-          if (chars && chars.length > 0) {
-            this.characteristic = chars[0];
-          } else {
-            throw e1;
-          }
+          this.characteristic = await this.service.getCharacteristic(characteristicUuid);
         }
       }
 
-      this.log('读写 Characteristic 获取成功！连接已就绪。', 'info');
+      this.log(`读写 Characteristic 获取成功 (${this.characteristic.uuid})！连接已就绪。`, 'info');
 
       this.isConnected = true;
       if (this.onStatusChangeCallback) {
@@ -206,35 +208,37 @@ class BleManager {
 
       this.server = await this.device.gatt.connect();
 
-      // Multi-stage Service Discovery for iOS Bluefy CoreBluetooth, Android, and Desktop Chrome
+      // Direct Service Discovery (bypasses iOS Bluefy Code 2 NotFoundError)
       try {
-        this.service = await this.server.getPrimaryService(0xffe0);
-      } catch (e1) {
+        const services = await this.server.getPrimaryServices();
+        if (services && services.length > 0) {
+          this.service = services.find(s => s.uuid.includes('ffe0')) || services[0];
+        } else {
+          this.service = await this.server.getPrimaryService(0xffe0);
+        }
+      } catch (svcErr) {
         try {
-          this.service = await this.server.getPrimaryService(serviceUuid);
+          this.service = await this.server.getPrimaryService(0xffe0);
         } catch (e2) {
-          const services = await this.server.getPrimaryServices();
-          if (services && services.length > 0) {
-            this.service = services[0];
-          } else {
-            throw e1;
-          }
+          this.service = await this.server.getPrimaryService(serviceUuid);
         }
       }
 
-      // Multi-stage Characteristic Discovery for iOS Bluefy CoreBluetooth, Android, and Desktop Chrome
+      // Direct Characteristic Discovery (bypasses iOS Bluefy Code 2 NotFoundError)
       try {
-        this.characteristic = await this.service.getCharacteristic(0xffe1);
-      } catch (e1) {
+        const chars = await this.service.getCharacteristics();
+        if (chars && chars.length > 0) {
+          this.characteristic = chars.find(c => c.uuid.includes('ffe1')) || 
+                                chars.find(c => (c.properties.write || c.properties.writeWithoutResponse || c.properties.notify)) || 
+                                chars[0];
+        } else {
+          this.characteristic = await this.service.getCharacteristic(0xffe1);
+        }
+      } catch (charErr) {
         try {
-          this.characteristic = await this.service.getCharacteristic(characteristicUuid);
+          this.characteristic = await this.service.getCharacteristic(0xffe1);
         } catch (e2) {
-          const chars = await this.service.getCharacteristics();
-          if (chars && chars.length > 0) {
-            this.characteristic = chars[0];
-          } else {
-            throw e1;
-          }
+          this.characteristic = await this.service.getCharacteristic(characteristicUuid);
         }
       }
 
@@ -831,7 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- INITIALIZATION WORKFLOW ---
   startClock();
   loadCachedSettings();
-  logToConsole('SR-Light Web Controller v1.5.0 (Build 20260722) 运行中', 'info');
+  logToConsole('SR-Light Web Controller v1.6.0 (Build 20260722) 运行中', 'info');
 
   if (isAutoConnectEnabled) {
     setTimeout(tryAutoConnect, 600);
