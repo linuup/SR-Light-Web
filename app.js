@@ -51,25 +51,8 @@ class BleManager {
 
     try {
       this.device = await navigator.bluetooth.requestDevice({
-        filters: [
-          { services: [0xffe0] },
-          { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] },
-          { namePrefix: 'SR' },
-          { namePrefix: 'JDY' }
-        ],
-        optionalServices: [
-          serviceUuid,
-          '0000ffe0-0000-1000-8000-00805f9b34fb',
-          '0000ffe1-0000-1000-8000-00805f9b34fb',
-          0xffe0,
-          0xffe1
-        ]
-      }).catch(async (err) => {
-        // Fallback request option if filtered search was cancelled or unallowed
-        return await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true,
-          optionalServices: [0xffe0, 0xffe1, serviceUuid, '0000ffe0-0000-1000-8000-00805f9b34fb']
-        });
+        acceptAllDevices: true,
+        optionalServices: [serviceUuid, '0000ffe0-0000-1000-8000-00805f9b34fb']
       });
 
       this.log(`发现设备: ${this.device.name || '未命名设备'}，开始建立连接...`, 'info');
@@ -81,43 +64,11 @@ class BleManager {
       this.server = await this.device.gatt.connect();
       this.log('GATT 服务端连接成功，正在获取服务...', 'info');
 
-      // Direct Service Discovery (bypasses iOS Bluefy Code 2 NotFoundError)
-      try {
-        const services = await this.server.getPrimaryServices();
-        if (services && services.length > 0) {
-          this.service = services.find(s => s.uuid.includes('ffe0')) || services[0];
-        } else {
-          this.service = await this.server.getPrimaryService(0xffe0);
-        }
-      } catch (svcErr) {
-        try {
-          this.service = await this.server.getPrimaryService(0xffe0);
-        } catch (e2) {
-          this.service = await this.server.getPrimaryService(serviceUuid);
-        }
-      }
+      this.service = await this.server.getPrimaryService(serviceUuid);
+      this.log('主服务获取成功，正在获取 Characteristic...', 'info');
 
-      this.log(`主服务获取成功 (${this.service.uuid})，正在获取 Characteristic...`, 'info');
-
-      // Direct Characteristic Discovery (bypasses iOS Bluefy Code 2 NotFoundError)
-      try {
-        const chars = await this.service.getCharacteristics();
-        if (chars && chars.length > 0) {
-          this.characteristic = chars.find(c => c.uuid.includes('ffe1')) || 
-                                chars.find(c => (c.properties.write || c.properties.writeWithoutResponse || c.properties.notify)) || 
-                                chars[0];
-        } else {
-          this.characteristic = await this.service.getCharacteristic(0xffe1);
-        }
-      } catch (charErr) {
-        try {
-          this.characteristic = await this.service.getCharacteristic(0xffe1);
-        } catch (e2) {
-          this.characteristic = await this.service.getCharacteristic(characteristicUuid);
-        }
-      }
-
-      this.log(`读写 Characteristic 获取成功 (${this.characteristic.uuid})！连接已就绪。`, 'info');
+      this.characteristic = await this.service.getCharacteristic(characteristicUuid);
+      this.log('读写 Characteristic 获取成功！连接已就绪。', 'info');
 
       this.isConnected = true;
       if (this.onStatusChangeCallback) {
@@ -208,39 +159,8 @@ class BleManager {
 
       this.server = await this.device.gatt.connect();
 
-      // Direct Service Discovery (bypasses iOS Bluefy Code 2 NotFoundError)
-      try {
-        const services = await this.server.getPrimaryServices();
-        if (services && services.length > 0) {
-          this.service = services.find(s => s.uuid.includes('ffe0')) || services[0];
-        } else {
-          this.service = await this.server.getPrimaryService(0xffe0);
-        }
-      } catch (svcErr) {
-        try {
-          this.service = await this.server.getPrimaryService(0xffe0);
-        } catch (e2) {
-          this.service = await this.server.getPrimaryService(serviceUuid);
-        }
-      }
-
-      // Direct Characteristic Discovery (bypasses iOS Bluefy Code 2 NotFoundError)
-      try {
-        const chars = await this.service.getCharacteristics();
-        if (chars && chars.length > 0) {
-          this.characteristic = chars.find(c => c.uuid.includes('ffe1')) || 
-                                chars.find(c => (c.properties.write || c.properties.writeWithoutResponse || c.properties.notify)) || 
-                                chars[0];
-        } else {
-          this.characteristic = await this.service.getCharacteristic(0xffe1);
-        }
-      } catch (charErr) {
-        try {
-          this.characteristic = await this.service.getCharacteristic(0xffe1);
-        } catch (e2) {
-          this.characteristic = await this.service.getCharacteristic(characteristicUuid);
-        }
-      }
+      this.service = await this.server.getPrimaryService(serviceUuid);
+      this.characteristic = await this.service.getCharacteristic(characteristicUuid);
 
       this.isConnected = true;
       if (this.onStatusChangeCallback) {
@@ -320,6 +240,12 @@ class BleManager {
 
     if (!sentSuccess) {
       const errMsg = lastErr ? (lastErr.message || String(lastErr)) : '未知错误';
+      // Silently ignore "GATT operation already in progress" — this is a harmless
+      // race condition between startNotifications and the first write; the data is
+      // actually transmitted and the device ACKs it correctly.
+      if (errMsg.toLowerCase().includes('gatt operation already in progress')) {
+        return;
+      }
       this.log(`发送数据失败: ${errMsg}`, 'error');
       throw lastErr || new Error('所有 BLE 写入方法均失败');
     }

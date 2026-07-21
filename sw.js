@@ -1,4 +1,4 @@
-const CACHE_NAME = 'SR-Light-web-v17';
+const CACHE_NAME = 'SR-Light-web-v18';
 const ASSETS = [
   './',
   './index.html',
