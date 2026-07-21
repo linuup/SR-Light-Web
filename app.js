@@ -632,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function getCctLabel(cctK) {
     if (cctK <= 3300) return '暖黄光';
     if (cctK <= 4800) return '自然白光';
-    return '冷白光 🟦';
+    return '冷白光';
   }
 
   // --- 24-HOUR TOUCH TIME PICKER ---
