@@ -1,0 +1,22 @@
+{
+  "name": "SR-Light Controller",
+  "short_name": "SR-Light",
+  "description": "Premium Bluetooth controller for SR-Light intelligent lighting system",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06060c",
+  "theme_color": "#0d0d1e",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
