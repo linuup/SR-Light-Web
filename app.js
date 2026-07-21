@@ -51,7 +51,12 @@ class BleManager {
 
     try {
       this.device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
+        filters: [
+          { services: [0xffe0] },
+          { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] },
+          { namePrefix: 'SR' },
+          { namePrefix: 'JDY' }
+        ],
         optionalServices: [
           serviceUuid,
           '0000ffe0-0000-1000-8000-00805f9b34fb',
@@ -59,6 +64,12 @@ class BleManager {
           0xffe0,
           0xffe1
         ]
+      }).catch(async (err) => {
+        // Fallback request option if filtered search was cancelled or unallowed
+        return await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [0xffe0, 0xffe1, serviceUuid, '0000ffe0-0000-1000-8000-00805f9b34fb']
+        });
       });
 
       this.log(`发现设备: ${this.device.name || '未命名设备'}，开始建立连接...`, 'info');
@@ -820,6 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- INITIALIZATION WORKFLOW ---
   startClock();
   loadCachedSettings();
+  logToConsole('SR-Light Web Controller v1.5.0 (Build 20260722) 运行中', 'info');
 
   if (isAutoConnectEnabled) {
     setTimeout(tryAutoConnect, 600);
