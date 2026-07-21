@@ -428,13 +428,29 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- BLE STATUS CHANGE HANDLER ---
+  const splash = document.getElementById('connect-splash');
+  const mainApp = document.getElementById('main-app');
+  const splashError = document.getElementById('splash-error');
+
+  function showMainApp() {
+    if (splash) splash.classList.add('hidden');
+    if (mainApp) mainApp.classList.add('visible');
+  }
+
+  function showSplash() {
+    if (splash) splash.classList.remove('hidden');
+    if (mainApp) mainApp.classList.remove('visible');
+  }
+
   bleManager.onStatusChangeCallback = (connected) => {
     if (connected) {
+      showMainApp();
       bleStatusBadge.className = 'status-badge connected';
       bleStatusText.textContent = '已连接';
       btnConnContainer.classList.add('d-none');
       btnDisconnContainer.classList.remove('d-none');
     } else {
+      showSplash();
       bleStatusBadge.className = 'status-badge disconnected';
       bleStatusText.textContent = '已断开';
       btnConnContainer.classList.remove('d-none');
@@ -448,7 +464,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- BUTTON EVENT LISTENERS ---
 
-  // Connect BLE Button
+  // Splash Connect Button (big fullscreen button)
+  const splashConnectBtn = document.getElementById('splash-connect-btn');
+  const doConnect = async (btn) => {
+    if (btn) btn.disabled = true;
+    if (splashError) { splashError.style.display = 'none'; splashError.textContent = ''; }
+    try {
+      await bleManager.connect();
+    } catch (err) {
+      if (splashError && err && !err.message?.includes('User cancelled')) {
+        splashError.textContent = `连接失败: ${err.message || err}`;
+        splashError.style.display = 'block';
+      }
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  if (splashConnectBtn) {
+    splashConnectBtn.addEventListener('click', () => doConnect(splashConnectBtn));
+  }
+
+  // Connect BLE Button (inside main app panel, after disconnect)
   bleConnectBtn.addEventListener('click', async () => {
     bleConnectBtn.disabled = true;
     try {

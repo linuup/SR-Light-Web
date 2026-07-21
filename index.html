@@ -32,6 +32,125 @@
       }
     };
   </script>
+
+  <style>
+    /* ── Connect Splash Screen ───────────────────────────────────── */
+    #connect-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      background: var(--bg-primary, #0d0d1e);
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #connect-splash.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .splash-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      animation: splash-float 3s ease-in-out infinite;
+    }
+    .splash-logo svg {
+      width: 80px;
+      height: 80px;
+      filter: drop-shadow(0 0 24px rgba(124, 77, 255, 0.6));
+    }
+    .splash-title {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #7c4dff, #00e5ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.05em;
+    }
+    .splash-subtitle {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: -0.75rem;
+    }
+    #splash-connect-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 1rem 2.5rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #7c4dff, #00e5ff);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 32px rgba(124,77,255,0.45), 0 4px 20px rgba(0,0,0,0.4);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      letter-spacing: 0.03em;
+    }
+    #splash-connect-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 48px rgba(124,77,255,0.65), 0 4px 28px rgba(0,0,0,0.5);
+    }
+    #splash-connect-btn:active {
+      transform: scale(0.97);
+    }
+    #splash-connect-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .splash-hint {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.3);
+    }
+    #splash-error {
+      font-size: 0.85rem;
+      color: #ff5370;
+      background: rgba(255,83,112,0.1);
+      border: 1px solid rgba(255,83,112,0.25);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      display: none;
+      max-width: 300px;
+      text-align: center;
+    }
+    .splash-pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00e5ff;
+      display: inline-block;
+      animation: pulse-dot 1.2s ease-in-out infinite;
+    }
+    @keyframes splash-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.6); opacity: 0.4; }
+    }
+
+    /* ── Main App (hidden until connected) ──────────────────────── */
+    #main-app {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s;
+      pointer-events: none;
+    }
+    #main-app.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+  </style>
 </head>
 
 <body>
@@ -39,7 +158,40 @@
   <div class="background-glow"></div>
   <div class="background-glow-secondary"></div>
 
-  <div class="app-container">
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- CONNECT SPLASH SCREEN                                       -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div id="connect-splash">
+    <div class="splash-logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M12 2C8.13 2 5 5.13 5 9C5 11.38 6.19 13.47 8 14.74V17C8 17.55 8.45 18 9 18H15C15.55 18 16 17.55 16 17V14.74C17.81 13.47 19 11.38 19 9C19 5.13 15.87 2 12 2Z"
+          stroke="#7c4dff" stroke-width="2" stroke-linejoin="round" />
+        <path d="M9 21H15" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" />
+        <path d="M12 6V9" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" />
+        <path d="M9 9H15" stroke="#7c4dff" stroke-width="1.5" stroke-linecap="round" />
+        <circle cx="12" cy="9" r="1.5" fill="#00e5ff" />
+      </svg>
+      <span class="splash-title">SR-Light</span>
+      <span class="splash-subtitle">智能台灯控制器</span>
+    </div>
+
+    <button id="splash-connect-btn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="m7 7 10 10-5 5V2l5 5L7 17" />
+      </svg>
+      搜索我的设备
+    </button>
+
+    <div id="splash-error"></div>
+    <span class="splash-hint">需要 Chrome 或 Edge 浏览器 · HTTPS 安全连接</span>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- MAIN APP (revealed after connect)                           -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div id="main-app" class="app-container">
     <!-- PWA Install Banner -->
     <div id="pwa-install-banner" class="glass-panel">
       <div class="pwa-text">
@@ -52,7 +204,6 @@
     <!-- Header Panel -->
     <header class="glass-panel">
       <div class="brand-section">
-        <!-- Modern stylized light bulb SVG Logo -->
         <svg class="brand-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M12 2C8.13 2 5 5.13 5 9C5 11.38 6.19 13.47 8 14.74V17C8 17.55 8.45 18 9 18H15C15.55 18 16 17.55 16 17V14.74C17.81 13.47 19 11.38 19 9C19 5.13 15.87 2 12 2Z"
@@ -63,7 +214,7 @@
           <circle cx="12" cy="9" r="1.5" fill="#00e5ff" />
         </svg>
         <span class="brand-name">SR-Light</span>
-        <span class="version-badge" style="font-size:0.75rem; padding:0.15rem 0.45rem; background:rgba(0,229,255,0.15); color:#00e5ff; border:1px solid rgba(0,229,255,0.3); border-radius:6px; font-weight:600; margin-left:0.4rem;">v1.6.0</span>
+        <span class="version-badge" style="font-size:0.75rem; padding:0.15rem 0.45rem; background:rgba(0,229,255,0.15); color:#00e5ff; border:1px solid rgba(0,229,255,0.3); border-radius:6px; font-weight:600; margin-left:0.4rem;">v1.7.0</span>
       </div>
       <div class="status-badge disconnected" id="ble-status-badge">
         <span class="status-dot"></span>
@@ -92,7 +243,7 @@
           </button>
         </div>
 
-        <div id="btn-conn-container">
+        <div id="btn-conn-container" class="d-none">
           <button id="ble-connect-btn" class="btn btn-primary" style="width: 100%;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -101,7 +252,7 @@
             搜索并连接设备
           </button>
         </div>
-        <div id="btn-disconn-container" class="d-none">
+        <div id="btn-disconn-container">
           <button id="ble-disconnect-btn" class="btn btn-danger" style="width: 100%;">
             断开蓝牙连接
           </button>
