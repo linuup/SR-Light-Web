@@ -452,6 +452,11 @@ document.addEventListener('DOMContentLoaded', () => {
           if (valProgressPercent) valProgressPercent.textContent = `${prog}%`;
         }
 
+        // ── Power State ───────────────────────────────────────────
+        if (p.power !== undefined) {
+          updatePowerBtnUI(p.power === 1);
+        }
+
         // ── Brightness ─────────────────────────────────────────────
         if (p.brightness !== undefined) {
           const b = p.brightness;
@@ -715,6 +720,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isNaN(cm)) alarmMinute = cm;
     updatePickerDisplay();
     valAlarm.textContent = cachedAlarm;
+  }
+
+  // --- LIGHT POWER SWITCH ---
+  let isLightOn = true;
+  const lightPowerBtn = document.getElementById('light-power-btn');
+
+  function updatePowerBtnUI(on) {
+    isLightOn = on;
+    if (lightPowerBtn) {
+      if (on) {
+        lightPowerBtn.textContent = '💡 开关：开启';
+        lightPowerBtn.className = 'btn btn-cyan btn-sm';
+      } else {
+        lightPowerBtn.textContent = '🔌 开关：关闭';
+        lightPowerBtn.className = 'btn btn-secondary btn-sm';
+      }
+    }
+  }
+
+  if (lightPowerBtn) {
+    lightPowerBtn.addEventListener('click', async () => {
+      const targetState = !isLightOn;
+      updatePowerBtnUI(targetState);
+      const command = targetState ? 'FL+LED:1' : 'FL+LED:0';
+      try {
+        await bleManager.send(command);
+        logToConsole(`灯光电源已被${targetState ? '开启' : '关闭'}`, 'info');
+      } catch (e) { }
+    });
   }
 
   // Save Alarm Button
